@@ -4,3 +4,4 @@ datasources.json
 *.log
 tests/cookies.txt
 **/private/
+.idea/
