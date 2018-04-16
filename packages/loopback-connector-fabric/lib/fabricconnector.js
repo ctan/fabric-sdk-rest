@@ -214,6 +214,7 @@ class HFCSDKConnector extends Connector {
       return theClient.createChannel(newChannelReq);
     }).then((newChannelResponse)=>{
       //8. Return new channel response status with transaciton ID
+      lbConnector.settings.channels.push({ "name":channelName, "peersIndex":[], "orderersIndex":[0] });
       response.status = newChannelResponse.status;
       return Promise.resolve(response);
     }).catch((err)=>{
@@ -373,6 +374,7 @@ class HFCSDKConnector extends Connector {
       theClient = aClient;
       //2. Get the Channel to instantiate chaincode on
       theChannel = aClient.getChannel(channelName);
+
       //3. Channel must be initialized to instantiate chaincode.
       return theChannel.initialize();
     }).then( (ignored)=>{
@@ -673,19 +675,14 @@ class HFCSDKConnector extends Connector {
       peerArray = data[1];
       logger.debug("postChannelsChannelNamePeers() - created client instance");
       //2. Get and initialize the Channel
-      try {
-        theChannel = theClient.getChannel(channelName);
-        //3. Channel must be initialized to instantiate chaincode.
+      theChannel = theClient.getChannel(channelName);
+
+      //3. Channel must be initialized to instantiate chaincode.
+      if (theChannel.getPeers().length > 0) {
         return theChannel.initialize();
-      } catch(err) {
-        logger.debug("postChannelsChannelNamePeers() - create new channel");
-        theChannel = theClient.newChannel(channelName);
-        var ordererPromise = Common.getOrderer(lbConnector.settings);
-        return ordererPromise.then( (orderer)=>{
-          logger.debug("postChannelsChannelNamePeers() - add orderer to new channel");
-          theChannel.addOrderer(orderer);
-        });
-      }
+      } else {
+        return Promise.resolve(true);
+        }
     }).then( (ignored) =>{
       var request = {};
       request.txId = theClient.newTransactionID();
@@ -706,11 +703,12 @@ class HFCSDKConnector extends Connector {
         var resp = {};
         resp.peerResponses = results[0];
         logger.debug(JSON.stringify(resp));
-
-        peerArray.forEach( function(aPeer){
-          theChannel.addPeer(aPeer);
+        var channelConfig = lbConnector.settings.channels.find(function(e) {
+          return e.name == channelName;
         });
-
+        peers.forEach(function(peerArrayIndex){
+          channelConfig.peersIndex.push(peerArrayIndex);
+        });
         return Promise.resolve(resp);
       } else {
         var err = new Error("Failed to join peer to channel");
