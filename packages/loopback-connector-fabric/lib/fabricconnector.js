@@ -647,35 +647,52 @@ class HFCSDKConnector extends Connector {
   * @returns {Promise}
   *
   * @param {string} channelName Name of the channel to GET
-  * @param {object} peerInfo Information about the peer to join to a channel
+  * @param {integer[]} peers Peers array to install chaincode on
   * @param {object} lbConnector The loopback connector object
   */
-  postChannelsChannelNamePeers(channelName, peerInfo, lbConnector){
+  postChannelsChannelNamePeers(channelName, peers, lbConnector){
     Common.logEntry(logger,this.postChannelsChannelNamePeers);
     var joinChannelRequest = {};
     var response = {};
 
     var theChannel;
     var theClient;
+    var peerArray;
+    var clientPromise = Common.getClientWithChannels(lbConnector.settings);
+    var peerArrayPromise;
+    if(peers !== undefined){
+      peerArrayPromise = Common.getPeers(lbConnector.settings, peers);
+    }
+    else { //Get all known peers
+      peerArrayPromise = Common.getPeers(lbConnector.settings);
+    }
 
     //1. Get a new client instance.
-    return Common.getClientWithChannels(lbConnector.settings).then( (aClient) =>{
+    return Promise.all([clientPromise,peerArrayPromise]).then((data)=>{
+      theClient = data[0];
+      peerArray = data[1];
       logger.debug("postChannelsChannelNamePeers() - created client instance");
       //2. Get and initialize the Channel
-      theClient = aClient; //Store in wider scope for use in follow on step.
-      theChannel = theClient.getChannel(channelName);
-      return theChannel.initialize();
+      try {
+        theChannel = theClient.getChannel(channelName);
+        //3. Channel must be initialized to instantiate chaincode.
+        return theChannel.initialize();
+      } catch(err) {
+        logger.debug("postChannelsChannelNamePeers() - create new channel");
+        theChannel = theClient.newChannel(channelName);
+        var ordererPromise = Common.getOrderer(lbConnector.settings);
+        return ordererPromise.then( (orderer)=>{
+          logger.debug("postChannelsChannelNamePeers() - add orderer to new channel");
+          theChannel.addOrderer(orderer);
+        });
+      }
     }).then( (ignored) =>{
       var request = {};
       request.txId = theClient.newTransactionID();
       //4. Get the channel genesis block
       return theChannel.getGenesisBlock(request);
     }).then( (genesisBlock) =>{
-      //TODO Should allow configured peers to be look3ed up instead?
-      //3. Create a peer instance with input info
-      var aPeer = new Peer(peerInfo.url,peerInfo.opts);
-
-      joinChannelRequest.targets = [aPeer];
+      joinChannelRequest.targets = peerArray;
       joinChannelRequest.txId = theClient.newTransactionID();
       joinChannelRequest.block = genesisBlock;
       //5. Join the peer to the channel
@@ -689,6 +706,11 @@ class HFCSDKConnector extends Connector {
         var resp = {};
         resp.peerResponses = results[0];
         logger.debug(JSON.stringify(resp));
+
+        peerArray.forEach( function(aPeer){
+          theChannel.addPeer(aPeer);
+        });
+
         return Promise.resolve(resp);
       } else {
         var err = new Error("Failed to join peer to channel");

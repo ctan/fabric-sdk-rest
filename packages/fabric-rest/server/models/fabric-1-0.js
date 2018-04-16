@@ -249,15 +249,15 @@ SwaggerApi.putChannelsChannelName = function(channelName, channelRequest, callba
 /**
  * Join a Peer to the channel
  * @param {string} channelName Name of the channel to join the peer to
- * @param {peer} peer The peer information
+ * @param {integer[]} peers Peers to instantiate chaincode on
  * @callback {Function} callback Callback function
  * @param {Error|string} err Error object
  * @param {any} result Result object
  */
-SwaggerApi.postChannelsChannelNamePeers = function(channelName, peer, callback) {
+SwaggerApi.postChannelsChannelNamePeers = function(channelName, peers, callback) {
   var datasource = SwaggerApi.app.datasources.fabricDataSource;
   var connector = datasource.connector;
-  connector.postChannelsChannelNamePeers(channelName, peer, connector).then(
+  connector.postChannelsChannelNamePeers(channelName, peers, connector).then(
     function(response){
       callback(null,response);
     },
@@ -619,11 +619,11 @@ SwaggerApi.remoteMethod('postChannelsChannelNamePeers',
        description: 'Name of the channel to join the peer to',
        required: true,
        http: { source: 'path' } },
-     { arg: 'peer',
-       type: 'peer',
-       description: 'The peer information',
+     { arg: 'peers',
+       type: [ 'integer' ],
+       description: 'Peers to instantiate chaincode on',
        required: true,
-       http: { source: 'body' } } ],
+       http: { source: 'query' } } ],
   returns: [{ description: 'Successful response from the peer',
       type: 'installResult',
       arg: 'data',
