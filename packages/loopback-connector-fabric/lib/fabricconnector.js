@@ -607,7 +607,11 @@ class HFCSDKConnector extends Connector {
       logger.debug("getChannelsChannelName() - created client instance");
       //3. Initialize the Channel and query it's Info
       theChannel = aClient.getChannel(channelName);
-      return theChannel.initialize();
+      if (theChannel.getPeers().length > 0) {
+        return theChannel.initialize();
+      } else {
+        return Promise.resolve(true);
+      }
     }).then( (ignored) =>{
       response = theChannel;
       return theChannel.queryInfo();
@@ -664,7 +668,7 @@ class HFCSDKConnector extends Connector {
         return theChannel.initialize();
       } else {
         return Promise.resolve(true);
-        }
+      }
     }).then( (ignored) =>{
       var request = {};
       request.txId = theClient.newTransactionID();
