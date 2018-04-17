@@ -219,10 +219,12 @@ class HFCSDKConnector extends Connector {
       return theClient.createChannel(newChannelReq);
     }).then((newChannelResponse)=>{
       //8. Return new channel response status with transaciton ID
-      var channel = {};
-      channel.name = channelName;
-      channel.peersIndex = [];
-      channel.orderersIndex = [0];
+      if (newChannelResponse.status == 'SUCCESS') {
+        var channel = {};
+        channel.name = channelName;
+        channel.peersIndex = [];
+        channel.orderersIndex = [0];
+      }
 
       lbConnector.settings.channels.push(channel);
       response.status = newChannelResponse.status;
