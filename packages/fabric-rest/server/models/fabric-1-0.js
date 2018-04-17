@@ -156,7 +156,7 @@ SwaggerApi.getChannelsChannelNameChaincodes = function(channelName, callback) {
 
  * @callback {Function} callback Callback function
  * @param {Error|string} err Error object
- * @param {ChannelQueryResponse} result Result object
+ * @param {channelQueryResponse} result Result object
  */
 SwaggerApi.getChannels = function(callback) {
   process.nextTick(function() {
@@ -545,7 +545,7 @@ SwaggerApi.remoteMethod('getChannels',
   accepts: [],
   returns:
    [ { description: 'Successful response',
-       type: 'ChannelQueryResponse',
+       type: 'channelQueryResponse',
        arg: 'data',
        root: true } ],
   http: { verb: 'get', path: '/channels' },

@@ -6,10 +6,20 @@
     "validateUpsert": true
   },
   "properties": {
-    "channel_id": {
+    "name": {
       "type": "string",
       "required": true,
       "description": "The name of the channel"
+    },
+    "peersIndex": {
+      "type": [ "int" ],
+      "required": true,
+      "description": "Index of peers"
+    },
+    "orderersIndex": {
+      "type": [ "int" ],
+      "required": true,
+      "description": "Index of orderers"
     }
   },
   "validations": [],

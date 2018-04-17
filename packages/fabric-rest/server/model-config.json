@@ -61,7 +61,7 @@
     "dataSource": null,
     "public": false
   },
-  "ChannelQueryResponse": {
+  "channelQueryResponse": {
     "dataSource": null,
     "public": false
   },

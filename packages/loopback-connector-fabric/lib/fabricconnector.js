@@ -214,7 +214,12 @@ class HFCSDKConnector extends Connector {
       return theClient.createChannel(newChannelReq);
     }).then((newChannelResponse)=>{
       //8. Return new channel response status with transaciton ID
-      lbConnector.settings.channels.push({ "name":channelName, "peersIndex":[], "orderersIndex":[0] });
+      var channel = {};
+      channel.name = channelName;
+      channel.peersIndex = [];
+      channel.orderersIndex = [0];
+
+      lbConnector.settings.channels.push(channel);
       response.status = newChannelResponse.status;
       return Promise.resolve(response);
     }).catch((err)=>{
@@ -581,32 +586,9 @@ class HFCSDKConnector extends Connector {
   getChannels(lbConnector){
     Common.logEntry(logger,this.getChannels);
 
-    var clientPromise = Common.getClient(lbConnector.settings);
-    var peerPromise   = Common.getPeer(lbConnector.settings);
-
-    //Once we have both Client and Peer query the Peer for the known Channels
-    return Promise.all([clientPromise,peerPromise]).then(
-      (data)=>{
-        // Assigning to vars for readability
-        var aClient = data[0];
-        var aPeer = data[1];
-
-        // Query the Peer for known channels
-        return aClient.queryChannels(aPeer);
-      }
-    ).then(
-        (response)=>{
-          //console.log(">> result");
-          //Expected response from queryChannels call is a ChannelQueryResponse proto Object
-          return Promise.resolve(response);
-        }
-    ).catch((error)=>{
-        //Failed to perform function log error and reject promise
-        logger.error("Failed to queryChannels: "+ error);
-        return Promise.reject(error);
-      }
-    );
-
+    var channelList = {};
+    channelList.channels = lbConnector.settings.channels;
+    return Promise.resolve(channelList);
   }
 
   /**

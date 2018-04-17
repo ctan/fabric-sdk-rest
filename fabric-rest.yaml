@@ -166,7 +166,7 @@ paths:
         '200':
           description: Successful response
           schema:
-            $ref: '#/definitions/ChannelQueryResponse'
+            $ref: '#/definitions/channelQueryResponse'
 ##
   /channels/{channelName}:
     get:
@@ -419,7 +419,7 @@ definitions:
     required:
       - envelope
 
-  ChannelQueryResponse:
+  channelQueryResponse:
     description: An array of ChannelInfo
     properties:
       channels:
@@ -428,10 +428,14 @@ definitions:
         items:
           type: object
           properties:
-            channel_id:
+            name:
               type: string
+            peersIndex:
+              type: array
+            orderersIndex:
+              type: array
           required:
-            - channel_id
+            - name
     required:
       - channels
 
