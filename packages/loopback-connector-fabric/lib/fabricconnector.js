@@ -601,20 +601,26 @@ class HFCSDKConnector extends Connector {
     Common.logEntry(logger,this.getChannelsChannelName);
     var response = {};
     var theChannel;
+    var hasPeers;
 
     //1. Get a new client instance.
     return Common.getClientWithChannels(lbConnector.settings).then( (aClient) =>{
       logger.debug("getChannelsChannelName() - created client instance");
       //3. Initialize the Channel and query it's Info
       theChannel = aClient.getChannel(channelName);
-      if (theChannel.getPeers().length > 0) {
+      hasPeers = theChannel.getPeers().length > 0;
+      if (hasPeers) {
         return theChannel.initialize();
       } else {
         return Promise.resolve(true);
       }
     }).then( (ignored) =>{
       response = theChannel;
-      return theChannel.queryInfo();
+      if (hasPeers) {
+        return theChannel.queryInfo();
+      } else {
+        return Promise.resolve(null);
+      }
     }).then( (channelInfo) =>{
       logger.debug("getChannelsChannelName() - queried channel okay");
       //Remove the _clientContext property from the Channel to avoid cyclic references in JSON response.
