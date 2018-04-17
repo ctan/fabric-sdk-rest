@@ -121,13 +121,12 @@ exports.isBase64 = function(aString){
 * Get a new {Client} that has been configured.
 *
 * @param {Object} settings The settings passed to the loopback connector
+* @param {integer[]} orgIndex Optional array of indexes into the org configuration.
 * @returns {Promise} A Promise containing the new {Client} that has been configured with a
 *                    default User context that is created here using the settings, and the
 *                    Orderer is set.
 */
-var getClient = function(settings){
-  //TODO change from using 1 configured User from datasources.json
-
+var getClient = function(settings,orgIndex){
   // Options for a file key store
   var keyStoreOpts = {
     path: settings.keyStoreFile,
@@ -142,7 +141,13 @@ var getClient = function(settings){
       aClient.setStateStore(store);
       // Set the user context for the {Client} from the information in datasources.json
       // and return the Promise that does that work.
-      return aClient.createUser(settings.fabricUser);
+      logger.debug("=====================" + settings.fabricUser);
+      var fabricUser = settings.fabricUser.find(function(e) {
+        logger.debug("=====================" + e.orgIndex);
+        logger.debug("=====================" + orgIndex);
+        return e.orgIndex == orgIndex;
+      });
+      return aClient.createUser(fabricUser);
     }
   ).then(
     (userData)=>{
@@ -161,13 +166,14 @@ exports.getClient = getClient;
 * datasources.json.
 *
 * @param {Object} settings The settings passed to the loopback connector
+* @param {integer[]} orgIndex Optional array of indexes into the org configuration.
 * @returns {Promise} A Promise containing the new {Client} that has been configured with a
 *                    default User context that is created here using the settings,the
 *                    Orderer is set, and Channels added.
 */
-exports.getClientWithChannels = function(settings){
+exports.getClientWithChannels = function(settings,orgIndex){
   //1. Get a new Client instance.
-  return getClient(settings).then( (aClient)=>{
+  return getClient(settings,orgIndex !== undefined ? orgIndex : 0).then( (aClient)=>{
     //2. Add the channel configuration to the client instance.
     logger.debug("getClientWithChannels() - adding Channels to client instance");
     return addChannelsToClient(aClient,settings);
@@ -357,7 +363,7 @@ exports.validateSettings = function(settings){
   //   logger.error("No keyStoreFile defined in datasources.json.");
   //   errorCount++;
   // };
-  if(settings.fabricUser === undefined || settings.fabricUser === null){
+  if(settings.fabricUser === undefined || settings.fabricUser === null || settings.fabricUser.length == 0){
     logger.error("No fabricUser defined in datasources.json.");
     errorCount++;
   };

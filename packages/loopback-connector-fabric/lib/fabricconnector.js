@@ -60,14 +60,17 @@ class HFCSDKConnector extends Connector {
       return Promise.reject(err);
     }
 
-    var clientPromise = Common.getClient(lbConnector.settings);
+    var orgIndex;
     var peerArrayPromise;
     if(peers !== undefined){
       peerArrayPromise = Common.getPeers(lbConnector.settings, peers);
+      orgIndex = peers.length > 0 ? lbConnector.settings.peers[peers[0]].orgIndex : 0;
     }
     else { //Get all known peers
       peerArrayPromise = Common.getPeers(lbConnector.settings);
+      orgIndex = 0;
     }
+    var clientPromise = Common.getClient(lbConnector.settings, orgIndex);
 
     //Once we have both Client and Peers use the client to install chaincode on the Peers
     return Promise.all([clientPromise,peerArrayPromise]).then(
@@ -110,14 +113,16 @@ class HFCSDKConnector extends Connector {
   getChaincodesId(id, peers, lbConnector){
     Common.logEntry(logger,this.getChaincodesId);
     //1. Get client and known peers
-    var clientPromise = Common.getClient(lbConnector.settings);
+    var orgIndex;
     var peerArrayPromise;
     if(peers !== undefined){
       peerArrayPromise = Common.getPeers(lbConnector.settings, peers);
-    }
-    else { //Get all known peers
+      orgIndex = peers.length > 0 ? lbConnector.settings.peers[peers[0]].orgIndex : 0;
+    } else { //Get all known peers
       peerArrayPromise = Common.getPeers(lbConnector.settings);
+      orgIndex = 0;
     }
+    var clientPromise = Common.getClient(lbConnector.settings, orgIndex);
 
     //2. Once we have both Client and Peers use the client to query chaincode on the Peers
     return Promise.all([clientPromise,peerArrayPromise]).then( (data)=>{
@@ -175,7 +180,7 @@ class HFCSDKConnector extends Connector {
     }
 
     //1. Get client
-    var clientPromise = Common.getClient(lbConnector.settings);
+    var clientPromise = Common.getClient(lbConnector.settings, 0);
     //2. Get Orderer
     var ordererPromise = Common.getOrderer(lbConnector.settings);
 
@@ -250,7 +255,7 @@ class HFCSDKConnector extends Connector {
     }
 
     //1. Get client
-    var clientPromise = Common.getClient(lbConnector.settings);
+    var clientPromise = Common.getClient(lbConnector.settings, 0);
     //2. Get Orderer
     var ordererPromise = Common.getOrderer(lbConnector.settings);
 
@@ -652,14 +657,16 @@ class HFCSDKConnector extends Connector {
     var theChannel;
     var theClient;
     var peerArray;
-    var clientPromise = Common.getClientWithChannels(lbConnector.settings);
+    var orgIndex;
     var peerArrayPromise;
     if(peers !== undefined){
       peerArrayPromise = Common.getPeers(lbConnector.settings, peers);
-    }
-    else { //Get all known peers
+      orgIndex = peers.length > 0 ? lbConnector.settings.peers[peers[0]].orgIndex : 0;
+    } else { //Get all known peers
       peerArrayPromise = Common.getPeers(lbConnector.settings);
+      orgIndex = 0;
     }
+    var clientPromise = Common.getClientWithChannels(lbConnector.settings, orgIndex);
 
     //1. Get a new client instance.
     return Promise.all([clientPromise,peerArrayPromise]).then((data)=>{
