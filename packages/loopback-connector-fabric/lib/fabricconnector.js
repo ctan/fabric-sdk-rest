@@ -338,7 +338,6 @@ class HFCSDKConnector extends Connector {
       theClient = data[0];
       peerArray = data[1];
       logger.debug("postChannelsChannelNameChaincodes() - created client instance");
-      theClient = aClient;
       //2. Get the Channel to instantiate chaincode on
       theChannel = theClient.getChannel(channelName);
 
