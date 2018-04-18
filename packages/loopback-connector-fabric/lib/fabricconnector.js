@@ -224,9 +224,8 @@ class HFCSDKConnector extends Connector {
         channel.name = channelName;
         channel.peersIndex = [];
         channel.orderersIndex = [0];
+        lbConnector.settings.channels.push(channel);
       }
-
-      lbConnector.settings.channels.push(channel);
       response.status = newChannelResponse.status;
       return Promise.resolve(response);
     }).catch((err)=>{
