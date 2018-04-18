@@ -315,11 +315,28 @@ class HFCSDKConnector extends Connector {
   postChannelsChannelNameChaincodes(channelName, peers, chaincode, lbConnector){
     Common.logEntry(logger,this.postChannelsChannelNameChaincodes);
     var request = {};
-    var theClient;
-    var theChannel;
 
-    //1. Get a new client instance.
-    return Common.getClientWithChannels(lbConnector.settings).then( (aClient) =>{
+    var theChannel;
+    var theClient;
+    var peerArray;
+    var orgIndex;
+    var peerArrayPromise;
+    if(peers !== undefined){
+      peerArrayPromise = Common.getPeers(lbConnector.settings, peers);
+      orgIndex = peers.length > 0 ? lbConnector.settings.peers[peers[0]].orgIndex : 0;
+    }
+    else { //Get all known peers
+      peerArrayPromise = Common.getPeers(lbConnector.settings);
+      orgIndex = 0;
+    }
+
+    var clientPromise = Common.getClient(lbConnector.settings, orgIndex);
+
+    //Once we have both Client and Peers use the client to install chaincode on the Peers
+    return Promise.all([clientPromise,peerArrayPromise]).then(
+          (data)=>{
+      theClient = data[0];
+      peerArray = data[1];
       logger.debug("postChannelsChannelNameChaincodes() - created client instance");
       theClient = aClient;
       //2. Get the Channel to instantiate chaincode on
@@ -330,6 +347,7 @@ class HFCSDKConnector extends Connector {
     }).then( (ignored)=>{
       //4. build txId
       request = chaincode;
+      request.targets = peerArray;
       request.txId = theClient.newTransactionID();
 
       //5. Propose it
