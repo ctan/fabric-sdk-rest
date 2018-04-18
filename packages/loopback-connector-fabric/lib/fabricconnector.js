@@ -329,8 +329,7 @@ class HFCSDKConnector extends Connector {
       peerArrayPromise = Common.getPeers(lbConnector.settings);
       orgIndex = 0;
     }
-
-    var clientPromise = Common.getClient(lbConnector.settings, orgIndex);
+    var clientPromise = Common.getClientWithChannels(lbConnector.settings, orgIndex);
 
     //Once we have both Client and Peers use the client to install chaincode on the Peers
     return Promise.all([clientPromise,peerArrayPromise]).then(

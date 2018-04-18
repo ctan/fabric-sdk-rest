@@ -141,10 +141,7 @@ var getClient = function(settings,orgIndex){
       aClient.setStateStore(store);
       // Set the user context for the {Client} from the information in datasources.json
       // and return the Promise that does that work.
-      logger.debug("=====================" + settings.fabricUser);
       var fabricUser = settings.fabricUser.find(function(e) {
-        logger.debug("=====================" + e.orgIndex);
-        logger.debug("=====================" + orgIndex);
         return e.orgIndex == orgIndex;
       });
       return aClient.createUser(fabricUser);
@@ -303,7 +300,6 @@ var addChannelsToClient = function(aClient, settings){
   return Promise.all([peersPromise,orderersPromise]).then( (data)=>{
       var pArray = data[0];
       var oArray = data[1];
-
       //2. Loop through configured Channels and add them to the Client.
       settings.channels.forEach( function(channelConfig,cIndex){
           //2.1 Create a new channel in the client.
